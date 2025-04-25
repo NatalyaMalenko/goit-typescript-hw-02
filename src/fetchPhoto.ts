@@ -1,12 +1,21 @@
 import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import { Photo } from "./types";
 
-async function fetchPhoto(searchPhoto, currentPage) {
+export interface FetchPhotoProps {
+  searchTerm: string;
+  currentPage: number;
+}
+
+async function fetchPhoto({
+  searchTerm,
+  currentPage,
+}: FetchPhotoProps): Promise<Photo[]> {
   try {
     const response = await axios.get("https://api.unsplash.com/search/photos", {
       params: {
         client_id: "ThO6c8hGjxaRpsBEJJnw-7S-7J9qgHoVmrZOCMmXcVM",
-        query: searchPhoto,
+        query: searchTerm,
         per_page: 9,
         page: currentPage,
       },

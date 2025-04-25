@@ -10,24 +10,25 @@ import LoadMoreBtn from "./components/LoadMoreBtn/LoadMoreBtn";
 import ErrorMessage from "./components/ErrorMessage/ErrorMessage";
 
 import ImageModal from "./components/ImageModal/ImageModal";
+import { Photo } from "./types";
 
 function App() {
-  const [photos, setPhotos] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const [page, setPage] = useState(1);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<boolean | string>(false);
+  const [page, setPage] = useState<number>(1);
 
-  const [selectPhoto, setSelectPhoto] = useState(null);
+  const [selectPhoto, setSelectPhoto] = useState<Photo | null>(null);
 
-  function openModal(photo) {
+  function openModal(photo: Photo): void {
     setSelectPhoto(photo);
   }
 
-  function closeModal() {
+  function closeModal(): void {
     setSelectPhoto(null);
   }
-  const handleSubmit = (term) => {
+  const handleSubmit = (term: string): string | undefined => {
     if (!term.trim()) {
       toast.error("Please enter a search term!");
       return;
@@ -42,17 +43,19 @@ function App() {
       return;
     }
 
-    const fetchImages = async () => {
+    const fetchImages = async (): Promise<Photo[] | undefined> => {
       try {
         setIsLoading(true);
         setError(false);
-        const images = await fetchPhoto(searchTerm, page);
+        const images = await fetchPhoto({ searchTerm, currentPage: page });
         if (images.length === 0) {
           toast.error("No images found!");
           return;
         }
         setPhotos((prevImages) => {
-          return page === 1 ? images : [...prevImages, ...images];
+          return page === 1 || !prevImages
+            ? images
+            : [...prevImages, ...images];
         });
       } catch {
         setError(true);
@@ -69,16 +72,14 @@ function App() {
     <div>
       <Toaster />
       <SearchBar onSubmit={handleSubmit} />
-      {error && <ErrorMessage error={error} />}
+      {typeof error === "string" && <ErrorMessage error={error} />}
       <ImageGallery photos={photos} onImageClick={openModal} />
-      {isLoading && <Spinner />}
+      {isLoading && <Spinner loading={true} size={60} color={"#9b0780"} />}
       {photos.length > 0 && !isLoading && (
-        <LoadMoreBtn onClick={() => setPage(page + 1)}>
-          Load more {page}
-        </LoadMoreBtn>
+        <LoadMoreBtn onClick={() => setPage(page + 1)} />
       )}
 
-      <ImageModal onClose={closeModal} photo={selectPhoto} />
+      {selectPhoto && <ImageModal onClose={closeModal} photo={selectPhoto} />}
     </div>
   );
 }
